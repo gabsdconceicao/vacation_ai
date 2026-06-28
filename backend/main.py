@@ -24,13 +24,17 @@ app.add_middleware(
 class RoteiroRequest(BaseModel):
     message: str
 
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
+# Caminho absoluto pro frontend
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
+
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 client_groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 @app.get("/")
 async def root():
-    return FileResponse('frontend/index.html')
+    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
 
 async def buscar_coordenadas(cidade: str):
     url = f"https://nominatim.openstreetmap.org/search"
@@ -94,7 +98,6 @@ def gerar_resposta_ia(pergunta_usuario: str, cidade: str, clima_data: dict):
     )
     
     resposta_markdown = chat_completion.choices[0].message.content
-    # Converte Markdown pra HTML
     resposta_html = markdown2.markdown(resposta_markdown)
     
     return resposta_html
@@ -107,13 +110,12 @@ async def criar_roteiro(request: RoteiroRequest):
         raise HTTPException(status_code=400, detail="Digite sua pergunta")
     
     try:
-        # Extrai a cidade da pergunta com IA
         extracao = client_groq.chat.completions.create(
             messages=[{
                 "role": "user", 
                 "content": f"Extraia APENAS o nome da cidade da frase: '{pergunta}'. Se houver país, inclua. Responda só 'Cidade, País' ou só 'Cidade', nada mais. Exemplo: 'Paris' ou 'Rio de Janeiro, Brasil'"
             }],
-            model="llama-3.1-8b-instant", # ESSE MODELO AINDA FUNCIONA
+            model="llama-3.1-8b-instant",
             temperature=0,
             max_tokens=50
         )
@@ -137,3 +139,10 @@ async def criar_roteiro(request: RoteiroRequest):
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro: {str(e)}")
+
+# ADICIONA ISSO AQUI NO FINAL
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
