@@ -2,7 +2,7 @@
 
 Agente de viagem que recomenda hóteis e passeios, além de informar sobre o clima no período escolhido para viajar.
 
-![VacationAI](https://via.placeholder.com/800x400/000000/FF006E?text=VacationAI)
+![VacationAI](https://symmetrical-space-zebra-7vrrwxpx756r3rvqx-8000.app.github.dev/)
 
 ## 🚀 Demo
 Digite qualquer destino e receba:
